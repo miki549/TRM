@@ -23,16 +23,13 @@ cap = 40*ones(Nc, 1); %capacities of compartments
 X = [30; 5; 15];
 
 % Gillespie algoritmus paraméterei
-tfinal = 400; % Végső idő
-t = 0; % Kezdeti idő
+tfinal = 400; % Szimuláció vége
+t = 0; % Szimuláció kezdete
 t_history = [0]; % Időpontok tárolása
 X_history = X'; % Állapotok tárolása
 
 % Reakció mátrix - minden lehetséges reakciót definiál
 % Formátum: [honnan, hová, változás a honnan-ban, változás a hová-ban]
-% 1-es útszakaszról 2-esre
-% 2-es útszakaszról 3-asra
-% 3-as útszakaszról 1-esre
 reaction_matrix = [
     1, 2, -1, 1;   % 1-es útszakaszról 2-esre
     2, 3, -1, 1;   % 2-es útszakaszról 3-asra 
@@ -41,11 +38,11 @@ reaction_matrix = [
 
 j = 0; % Reakció számláló
 
-% Gillespie algoritmus - főciklus
+% Gillespie algoritmus
 while t < tfinal
     j = j + 1;
     
-    % 1. lépés: Kiszámoljuk a propensity/intenzitás függvényeket minden reakcióra
+    % 1. lépés: Propensity/intenzitás függvények kiszámítása minden reakcióra
     propensities = zeros(size(reaction_matrix, 1), 1);
     
     for r = 1:size(reaction_matrix, 1)
@@ -55,12 +52,12 @@ while t < tfinal
         % Propensity: k_stoch * n_i * (c_j - n_j)
         propensities(r) = k_stoch * X(from) * (cap(to) - X(to));
     end
-    %Külső áramlások hozzáadása
+    %Külső flow hozzáadása
     flows = TRM_external_flows(t,Nc);
     inflow_rates = flows(:,1);
     outflow_rates = flows(:,2);
     
-    % Külső áramlások propensity-jei
+    % Külső flow propensity-jei
     inflow_propensities = inflow_rates .* (cap - X);
     outflow_propensities = outflow_rates .* X;
     
@@ -86,7 +83,7 @@ while t < tfinal
         break;
     end
     
-    % 5. lépés: Melyik reakció következik be
+    % 5. lépés: Melyik reakció következik be?
     cum_prop = cumsum(all_propensities) / total_propensity;
     mu = find(cum_prop >= r2, 1);
     
@@ -98,11 +95,11 @@ while t < tfinal
         X(from) = X(from) - 1;
         X(to) = X(to) + 1;
     elseif mu <= size(reaction_matrix, 1) + Nc
-        % Külső beáramlás
+        % Külső inflow
         inflow_idx = mu - size(reaction_matrix, 1);
         X(inflow_idx) = X(inflow_idx) + 1;
     else
-        % Külső kiáramlás
+        % Külső outflow
         outflow_idx = mu - size(reaction_matrix, 1) - Nc;
         X(outflow_idx) = X(outflow_idx) - 1;
     end
@@ -112,7 +109,7 @@ while t < tfinal
     X_history = [X_history; X'];
 end
 
-% Eredmények ábrázolása
+% Plotolás
 figure;
 stairs(t_history, X_history, 'LineWidth', 2);
 
