@@ -13,22 +13,22 @@ cm = delta_x/l; % cellák maximális kapacitása [jármű]
 k_stoch = k / delta_x;
 
 % 10 csomópontos úthálózat
-Nc = 5; % útszakaszok száma
+Nc = 4; % útszakaszok száma
 cap = cm*ones(Nc, 1); % útszakaszok kapacitásai
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [40; 2; 0; 10; 5];
+X = [40; 2; 0; 10];
 
 % Szimuláció paraméterei
 tfinal = 400; % Szimuláció vége
 
 % Reakció mátrix - komplex útkapcsolatokkal
 reaction_matrix = [
-    1, 2, -1, 1;  % 1-es csomópontból 2-es csomópontba 
-    1, 3, -1, 1;  % 1-es csomópontból 3-as csomópontba
-    2, 4, -1, 1;  % 2-es csomópontból 4-es csomópontba
-    3, 4, -1, 1   % 3-as csomópontból 4-es csomópontba
-    1, 4, -1, 1   % 1-es csomópontból 4-es csomópontba (átlós él)
+    1, 2, -1, 1; 
+    2, 3, -1, 1; 
+    3, 4, -1, 1;
+    4, 1, -1, 1;
+    3, 2, -1, 1
 ];
 
 % Gillespie szimuláció futtatása
@@ -47,7 +47,7 @@ colororder(newcolors);
 legend_labels = arrayfun(@(x) sprintf('n_%d', x), 1:Nc, 'UniformOutput', false);
 legend(legend_labels);
 
-title('TRM Stochasztikus Szimuláció - Gillespie Algoritmus (10 csomópont)');
+title('TRM Stochasztikus Szimuláció - Gillespie Algoritmus');
 ylabel('Járművek száma');
 xlabel('Idő');
 grid on;

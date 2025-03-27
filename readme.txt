@@ -8,3 +8,4 @@ TRM_red_ode_mod.m: Determinisztikus ODE modell az nyílt hurkú TRM modell szimu
 TRM_external_flows.m: Függvény az időben változó külső be- és kifolyások definiálásához
 gillespie_simulation.m: Sztochasztikus szimuláció Gillespie-algoritmussal
 main.m: Fő szkript a szimuláció futtatásához
+
