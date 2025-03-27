@@ -34,7 +34,7 @@ cap=40*ones(Nc,1); %capacities of compartments
 n0 = [30; 5; 15];
 y0 = [n0];
 
-tfinal=40;
+tfinal=200;
 tspan = [0 tfinal]; %time is in seconds
 
 options = odeset('RelTol',1e-8,'AbsTol',1e-8);
