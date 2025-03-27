@@ -13,34 +13,23 @@ cm = delta_x/l; % cellák maximális kapacitása [jármű]
 k_stoch = k / delta_x;
 
 % 10 csomópontos úthálózat
-Nc = 10; % útszakaszok száma
+Nc = 5; % útszakaszok száma
 cap = cm*ones(Nc, 1); % útszakaszok kapacitásai
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [40; 2; 0; 10; 5; 15; 8; 12; 3; 7];
+X = [40; 2; 0; 10; 5];
 
 % Szimuláció paraméterei
-tfinal = 1000; % Szimuláció vége
+tfinal = 400; % Szimuláció vége
 
 % Reakció mátrix - komplex útkapcsolatokkal
 reaction_matrix = [
-    1, 2, -1, 1;   % 1-es útszakaszról 2-esre
-    1, 4, -1, 1;   % 1-es útszakaszról 4-esre
-    2, 3, -1, 1;   % 2-es útszakaszról 3-asra
-    2, 5, -1, 1;   % 2-es útszakaszról 5-ösre
-    3, 6, -1, 1;   % 3-as útszakaszról 6-osra
-    4, 5, -1, 1;   % 4-es útszakaszról 5-ösre
-    4, 7, -1, 1;   % 4-es útszakaszról 7-esre
-    5, 6, -1, 1;   % 5-ös útszakaszról 6-osra
-    5, 8, -1, 1;   % 5-ös útszakaszról 8-asra
-    6, 9, -1, 1;   % 6-os útszakaszról 9-esre
-    7, 8, -1, 1;   % 7-es útszakaszról 8-asra
-    7, 10, -1, 1;  % 7-es útszakaszról 10-esre
-    8, 9, -1, 1;   % 8-as útszakaszról 9-esre
-    8, 10, -1, 1;  % 8-as útszakaszról 10-esre
-    9, 10, -1, 1;  % 9-es útszakaszról 10-esre
+    1, 2, -1, 1;  % 1-es csomópontból 2-es csomópontba 
+    1, 3, -1, 1;  % 1-es csomópontból 3-as csomópontba
+    2, 4, -1, 1;  % 2-es csomópontból 4-es csomópontba
+    3, 4, -1, 1   % 3-as csomópontból 4-es csomópontba
+    1, 4, -1, 1   % 1-es csomópontból 4-es csomópontba (átlós él)
 ];
-
 
 % Gillespie szimuláció futtatása
 [t_history, X_history] = gillespie_simulation(Nc, X, cap, k_stoch, reaction_matrix, tfinal);

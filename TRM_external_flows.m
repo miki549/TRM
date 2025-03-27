@@ -13,11 +13,11 @@ function out = TRM_external_flows(t,N)
 flow=zeros(N,2);
 
 %inflow rates
-flow(1,1) = 1*(sin(t/5)+1) + 2*(sin(pi*t/6)+1);
+%flow(1,1) = 1*(sin(t/5)+1) + 2*(sin(pi*t/6)+1);
 %flow(2,1) = 2*(cos(sqrt(2)*t/8)+1) + (sin(t/3)+1);
 
 %outflow rates
-flow(2,2) = 0.4;
+%flow(2,2) = 0.4;
 
 
 out=flow;
