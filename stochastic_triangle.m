@@ -20,7 +20,7 @@ Nc = 3; %number of compartments
 cap = 40*ones(Nc, 1); %capacities of compartments
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [30; 5; 15];
+X = [40; 2; 0];
 
 % Gillespie algoritmus paraméterei
 tfinal = 400; % Szimuláció vége
@@ -135,7 +135,7 @@ K(3,1) = kij; % 3-as útszakaszról 1-esre
 K = K/delta_x;
 
 % Determinisztikus szimuláció
-y0 = [30; 5; 15]; % Ugyanaz a kezdeti állapot
+y0 = X; % Ugyanaz a kezdeti állapot
 tspan = [0 tfinal];
 options = odeset('RelTol', 1e-8, 'AbsTol', 1e-8);
 [t_det, y_det] = ode45(@(t,y) TRM_red_ode_mod(t,y,K,cap), tspan, y0, options);
