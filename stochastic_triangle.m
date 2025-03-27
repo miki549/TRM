@@ -1,4 +1,4 @@
-clear all
+%clear all
 close all
 
 %physical parameters of continuous time model where the state variable is vehicle density [vehicle / m]:
@@ -25,7 +25,7 @@ X = [30; 5; 15];
 % Gillespie algoritmus paraméterei
 tfinal = 400; % Szimuláció vége
 t = 0; % Szimuláció kezdete
-t_history = [0]; % Időpontok tárolása
+t_history = 0; % Időpontok tárolása
 X_history = X'; % Állapotok tárolása
 
 % Reakció mátrix - minden lehetséges reakciót definiál
