@@ -79,7 +79,68 @@ function [t_history, X_history] = modified_next_reaction_method(Nc, X, cap, k_st
         tau = zeros(total_reactions, 1);
         for j = 1:total_reactions
             if propensities(j) > 0
-                tau(j) = (S(j) - T(j)) / propensities(j);
+                % Hatékony megoldás az integrál egyenlet megoldására
+                % Numerikus integrálás helyett a tau értékét iteratív módon számoljuk
+                % Az integrál egyenlet: ∫[t→t+τj] a_j(X(s),s) ds = S_j - T_j
+                
+                % Kezdeti becslés (lineáris közelítés alapján)
+                tau_guess = (S(j) - T(j)) / propensities(j);
+                
+                % Iteratív finomítás az integrál közelítésével
+                % Becsüljük az átlagos propensity-t t és t+tau_guess között
+                
+                % Propensity a becslés végpontjában (t+tau_guess)
+                % Belső átmenetek esetén
+                if j <= num_internal_reactions
+                    from = reaction_matrix(j, 1);
+                    to = reaction_matrix(j, 2);
+                    end_k_stoch = k_stoch_func(t + tau_guess, from, to);
+                    end_propensity = end_k_stoch * X(from) * (cap(to) - X(to));
+                % Külső flow-k esetén egyszerűbb becslés
+                else
+                    % Előrejelzés az időfüggő külső flow értékekre
+                    end_flows_info = TRM_external_flows(t + tau_guess, Nc);
+                    end_inflow_rates = end_flows_info(:,1);
+                    end_outflow_rates = end_flows_info(:,2);
+                    
+                    % Beáramlások
+                    if j <= num_internal_reactions + num_inflows
+                        inflow_idx = j - num_internal_reactions;
+                        actual_idx = 0;
+                        for i = 1:Nc
+                            if inflow_rates(i) > 0
+                                actual_idx = actual_idx + 1;
+                                if actual_idx == inflow_idx
+                                    end_propensity = end_inflow_rates(i) * (cap(i) - X(i));
+                                    break;
+                                end
+                            end
+                        end
+                    % Kiáramlások
+                    else
+                        outflow_idx = j - num_internal_reactions - num_inflows;
+                        actual_idx = 0;
+                        for i = 1:Nc
+                            if outflow_rates(i) > 0
+                                actual_idx = actual_idx + 1;
+                                if actual_idx == outflow_idx
+                                    end_propensity = end_outflow_rates(i) * X(i);
+                                    break;
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                % Az átlagos propensity becslése trapéz szabállyal
+                avg_propensity = (propensities(j) + end_propensity) / 2;
+                
+                % Új tau becslés
+                tau_new = (S(j) - T(j)) / avg_propensity;
+                
+                % További iterációk ha szükséges
+                % Az egyszerűség kedvéért és hatékonyság miatt az első iterációt használjuk
+                tau(j) = tau_new;
             else
                 tau(j) = Inf;
             end
@@ -94,9 +155,22 @@ function [t_history, X_history] = modified_next_reaction_method(Nc, X, cap, k_st
             break;
         end
         
-        % T értékek frissítése
+        % T értékek frissítése minden reakcióra
         for j = 1:total_reactions
-            T(j) = T(j) + propensities(j) * delta_t;
+            % T frissítése az integrál közelítésével
+            if j <= num_internal_reactions
+                from = reaction_matrix(j, 1);
+                to = reaction_matrix(j, 2);
+                start_k = k_stoch_func(t - delta_t, from, to);
+                end_k = k_stoch_func(t, from, to);
+                avg_k = (start_k + end_k) / 2;
+                avg_propensity = avg_k * X(from) * (cap(to) - X(to));
+            else
+                % Külső flow-k becslése
+                avg_propensity = propensities(j);
+            end
+            
+            T(j) = T(j) + avg_propensity * delta_t;
         end
         
         % Állapot frissítése a választott reakció alapján
@@ -138,7 +212,7 @@ function [t_history, X_history] = modified_next_reaction_method(Nc, X, cap, k_st
         end
         
         % Kiválasztott reakció S értékének frissítése
-        S(mu) = S(mu) + -log(rand());
+        S(mu) = S(mu) - log(rand());
         
         % Adatok tárolása
         t_history = [t_history; t];

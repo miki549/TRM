@@ -34,9 +34,8 @@ reaction_matrix = [
 function k = time_dependent_rate(t, from, to)
     % Az alap átmeneti ráta
     k_base = 0.00025;
-    
-    % Alap forgalmi mintázatok időbeli változása
-    % Például torlódás a 2-es útszakaszon bizonyos időszakban
+    %{
+    %torlódás a 2-es útszakaszon bizonyos időszakban
     if from == 1 && to == 2
         k = k_base * (1 + 0.5*sin(t/30));  % Ingadozó forgalom
     elseif from == 2 && to == 3
@@ -49,9 +48,10 @@ function k = time_dependent_rate(t, from, to)
         k = k_base * (1 + 0.2*cos(t/50));  % Enyhe ingadozás
     elseif from == 4 && to == 1
         k = k_base * (1 + 0.3*sin(t/40));  % Közepes ingadozás
-    else
+    else 
+    %}
         k = k_base;  % Alapértelmezett ráta
-    end
+    %end
 end
 
 % Modified Next Reaction Method futtatása
@@ -59,6 +59,8 @@ end
 
 % Eredmények ábrázolása
 figure;
+disp(t_history);
+disp(X_history);
 stairs(t_history, X_history, 'LineWidth', 2);
 
 % Színek generálása a csomópontok számának megfelelően
