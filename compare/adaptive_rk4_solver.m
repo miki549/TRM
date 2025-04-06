@@ -1,4 +1,4 @@
-function tau = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix, cap, Nc, tolerance)
+function [tau, steps] = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix, cap, Nc, tolerance)
     % Az adaptív 4. rendű Runge-Kutta módszer implementációja az MNRM algoritmushoz
     % 
     % Bemeneti paraméterek:
@@ -12,11 +12,21 @@ function tau = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix
     % cap - Útszakaszok kapacitásvektora
     % Nc - Útszakaszok száma
     % tolerance - Megengedett numerikus hiba
+    %
+    % Kimeneti paraméterek:
+    % tau - A számított idő
+    % steps - A szükséges lépések száma
     
     % Kezdeti propensity kiszámítása a kezdeti lépésköz becsléséhez
     initial_propensity = compute_actual_propensity(X, mu, t, k_stoch_func, reaction_matrix, cap, Nc);
     % Kezdeti lépésköz becslése - kisebb kezdeti lépésköz a pontosabb integráláshoz
     initial_h = (S - T) / initial_propensity / 10;
+    
+    % Debug: Kezdeti értékek kiírása
+    fprintf('\nIntegrálási folyamat:\n');
+    fprintf('Kezdeti propensity = %f\n', initial_propensity);
+    fprintf('Kezdeti lépésköz = %f\n', initial_h);
+    fprintf('Cél: S - T = %f\n', S - T);
     
     % Lépésköz korlátok beállítása
     h_min = initial_h * 1e-6;  % Minimális lépésköz a túl kis lépések elkerülésére
@@ -26,11 +36,19 @@ function tau = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix
     tau = 0;              % A teljes integrálási idő
     integral_sum = 0;     % Az integrál összege
     h = initial_h;        % Aktuális lépésköz
+    steps = 0;            % Lépések száma
     
     % Fő integrálási ciklus
     while integral_sum < (S - T)  % Addig folytatjuk, amíg el nem érjük a kívánt integrálértéket
+        steps = steps + 1;  % Lépések számolása
+        
         % RK4 lépés végrehajtása és hibabecslés
         [increment1, error_est] = rk4_step(t, tau, X, mu, h, k_stoch_func, reaction_matrix, cap, Nc);
+        
+        % Debug: Lépés információk kiírása
+        if steps <= 3  % Csak az első néhány lépést írjuk ki
+            fprintf('Lépés %d: h = %f, increment = %f, error = %e\n', steps, h, increment1, error_est);
+        end
         
         % Adaptív lépésköz szabályozás a hibabecslés alapján
         if error_est > tolerance
@@ -55,6 +73,9 @@ function tau = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix
             break;
         end
     end
+    
+    % Debug: Végeredmény kiírása
+    fprintf('Végeredmény: integral_sum = %f, tau = %f\n', integral_sum, tau);
 end
 
 function [increment, error_est] = rk4_step(t, tau, X, mu, h, k_stoch_func, reaction_matrix, cap, Nc)
