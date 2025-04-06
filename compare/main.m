@@ -10,12 +10,11 @@ delta_x = 200;            % Cellméret [m]
 k_base = omega/delta_x;   % Alapértelmezett átmeneti ráta [m / (jármű * s)]
 cm = delta_x/l;           % Cellák maximális kapacitása [jármű]
 
-% 4 csomópontos úthálózat
-Nc = 4;                   % Útszakaszok száma
-cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
-
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [40; 2; 0; 12];
+X = [5;0;40];
+
+Nc = length(X);                   % Útszakaszok száma
+cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
 
 % Szimuláció paraméterei
 tfinal = 400;             % Szimuláció vége
@@ -23,9 +22,8 @@ tfinal = 400;             % Szimuláció vége
 % Reakció mátrix - komplex útkapcsolatokkal
 reaction_matrix = [
     1, 2; 
-    2, 3; 
-    3, 4;
-    4, 1;
+    2, 3;
+    3, 1
 ];
 
 % Időfüggő átmeneti ráta függvény definiálása

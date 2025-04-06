@@ -12,7 +12,7 @@ function out = TRM_external_flows(t, N)
     flow = zeros(N, 2);
 
     % Beáramlási ráták (időfüggő)
-    flow(1, 1) = 0.05 * (sin(t/50) + 1.5);  % Első útszakaszra változó beáramlás
+    %flow(1, 1) = 0.05 * (sin(t/50) + 1.5);  % Első útszakaszra változó beáramlás
     
     % Reggeli és délutáni csúcsidőszak szimulálása
     %morning_peak = exp(-((t-100)^2)/1000) * 0.1;  % Reggeli csúcs kb. t=100 körül
@@ -20,7 +20,7 @@ function out = TRM_external_flows(t, N)
     %flow(2, 1) = morning_peak + evening_peak;     % Második útszakaszra csúcsidőszaki beáramlás
     
     % Kiáramlási ráták (időfüggő)
-    flow(3, 2) = 0.03 * (cos(t/70) + 1.2);  % Harmadik útszakaszról változó kiáramlás
+    %flow(3, 2) = 0.03 * (cos(t/70) + 1.2);  % Harmadik útszakaszról változó kiáramlás
     
     % Speciális esemény: útlezárás/baleset szimulálása
     %if t > 200 && t < 250

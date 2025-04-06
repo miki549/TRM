@@ -77,6 +77,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
         
         % Várakozási idők kiszámítása
         tau = zeros(total_reactions, 1);
+        %{
         for j = 1:total_reactions
             if propensities(j) > 0
                 % Hatékony megoldás az integrál egyenlet megoldására
@@ -145,8 +146,18 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
                 tau(j) = Inf;
             end
         end
-        
+        %}
         % Legkorábbi reakció kiválasztása
+
+        tolerance = 1e-8;  % Szigorú tolerancia a nagy pontossághoz
+
+        for j = 1:total_reactions
+            if propensities(j) > 0
+                tau(j) = adaptive_rk4_solver(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
+            else
+                tau(j) = Inf;
+            end
+        end
         [delta_t, mu] = min(tau);
         
         % Idő frissítése
