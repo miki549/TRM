@@ -1,4 +1,4 @@
-% Főprogram a Modified Next Reaction Method használatához
+clear all
 close all
 
 % Fizikai paraméterek
@@ -19,7 +19,7 @@ cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
 % Szimuláció paraméterei
 tfinal = 400;             % Szimuláció vége
 
-% Reakció mátrix - komplex útkapcsolatokkal
+% Reakció mátrix
 reaction_matrix = [
     1, 2; 
     2, 3;
@@ -32,7 +32,6 @@ reaction_matrix = [
 function k = time_dependent_rate(t, from, to)
     % Az alap átmeneti ráta
     k_base = 0.00025;
-    %{
     %torlódás a 2-es útszakaszon bizonyos időszakban
     if from == 1 && to == 2
         k = k_base * (1 + 0.5*sin(t/30));  % Ingadozó forgalom
@@ -42,15 +41,9 @@ function k = time_dependent_rate(t, from, to)
         else
             k = k_base;
         end
-    elseif from == 3 && to == 4
+    elseif from == 3 && to == 1
         k = k_base * (1 + 0.2*cos(t/50));  % Enyhe ingadozás
-    elseif from == 4 && to == 1
-        k = k_base * (1 + 0.3*sin(t/40));  % Közepes ingadozás
     else 
-    %}
-    if from == 1 && to == 2
-        k = k_base * (1 + 0.5*sin(t/30));  % Ingadozó forgalom
-    else
         k = k_base;  % Alapértelmezett ráta
     end
 end
@@ -58,6 +51,7 @@ end
 % Modified Next Reaction Method futtatása
 [t_history1, X_history1] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
 [t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
+
 
 % Színek generálása a csomópontok számának megfelelően
 newcolors = jet(Nc);
@@ -127,55 +121,3 @@ title('Összes jármű száma az idő függvényében');
 xlabel('Idő [s]');
 ylabel('Összes jármű száma');
 grid on;
-
-% Egyszerű teszteset az analitikus ellenőrzéshez
-function test_analytical()
-    % Egyszerű eset: konstans propensity függvény
-    % Ekkor az integrál egyszerűen: a * τ = S - T
-    % Tehát τ = (S - T) / a
-    
-    % Teszt paraméterek
-    S = 1.0;
-    T = 0.0;
-    t = 0;
-    X = [1,2];
-    mu = 1;
-    
-    % Egyszerű konstans átmeneti ráta függvény
-    k_stoch_func = @(t, from, to) 0.1;  % Konstans átmeneti ráta
-    
-    % Reakciómátrix és kapacitás beállítása
-    reaction_matrix = [1, 2];
-    cap = [20,10];
-    Nc = 2;
-    tolerance = 1e-8;
-    
-    % Debug: Propensity értékek kiírása
-    from = reaction_matrix(mu, 1);
-    to = reaction_matrix(mu, 2);
-    k = k_stoch_func(t, from, to);
-    actual_propensity = compute_actual_propensity(X, mu, t, k_stoch_func, reaction_matrix, cap, Nc);
-    
-    fprintf('Debug információk:\n');
-    fprintf('k = %f\n', k);
-    fprintf('X(from) = %d\n', X(from));
-    fprintf('cap(to) = %d\n', cap(to));
-    fprintf('X(to) = %d\n', X(to));
-    fprintf('Számított propensity = %f\n', actual_propensity);
-    
-    % Numerikus megoldás
-    [tau_numerical, steps] = adaptive_rk4_solver(S, T, t, X, mu, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
-    
-    % Analitikus megoldás
-    % A propensity = k * X(from) * (cap(to) - X(to))
-    a = actual_propensity;  % Használjuk a számított propensity értéket
-    tau_analytical = (S - T) / a;
-    
-    % Eredmények kiírása
-    fprintf('\nEredmények:\n');
-    fprintf('Numerikus megoldás: τ = %f (lépések száma: %d)\n', tau_numerical, steps);
-    fprintf('Analitikus megoldás: τ = %f\n', tau_analytical);
-    fprintf('Különbség: %e\n', abs(tau_numerical - tau_analytical));
-end
-    
-test_analytical();

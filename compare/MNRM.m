@@ -9,10 +9,10 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
     % - tfinal: szimuláció vége
     
     % Inicializálás
-    t = 0;                  % Kezdeti idő
+    t = 395;                  % Kezdeti idő
     t_history = [0];        % Időpontok tárolása
     X_history = [X'];       % Állapotok tárolása
-    
+        
     % Reakciók száma
     num_internal_reactions = size(reaction_matrix, 1);
     
@@ -31,7 +31,10 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
     S = -log(rand(total_reactions, 1)); % Következő reakció időpontja
     
     % Fő ciklus
+    iteration = 0;  % Iteráció számláló hozzáadása
     while t < tfinal
+        iteration = iteration + 1;
+        
         % Propensity függvények kiszámítása minden reakcióra az aktuális állapotban
         propensities = zeros(total_reactions, 1);
         
@@ -70,90 +73,18 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             end
         end
         
-        % Ha minden propensity nulla, kilépünk
         if all(propensities == 0)
             break;
         end
         
         % Várakozási idők kiszámítása
         tau = zeros(total_reactions, 1);
-        %{
-        for j = 1:total_reactions
-            if propensities(j) > 0
-                % Hatékony megoldás az integrál egyenlet megoldására
-                % Numerikus integrálás helyett a tau értékét iteratív módon számoljuk
-                % Az integrál egyenlet: ∫[t→t+τj] a_j(X(s),s) ds = S_j - T_j
-                
-                % Kezdeti becslés (lineáris közelítés alapján)
-                tau_guess = (S(j) - T(j)) / propensities(j);
-                
-                % Iteratív finomítás az integrál közelítésével
-                % Becsüljük az átlagos propensity-t t és t+tau_guess között
-                
-                % Propensity a becslés végpontjában (t+tau_guess)
-                % Belső átmenetek esetén
-                if j <= num_internal_reactions
-                    from = reaction_matrix(j, 1);
-                    to = reaction_matrix(j, 2);
-                    end_k_stoch = k_stoch_func(t + tau_guess, from, to);
-                    end_propensity = end_k_stoch * X(from) * (cap(to) - X(to));
-                % Külső flow-k esetén egyszerűbb becslés
-                else
-                    % Előrejelzés az időfüggő külső flow értékekre
-                    end_flows_info = TRM_external_flows(t + tau_guess, Nc);
-                    end_inflow_rates = end_flows_info(:,1);
-                    end_outflow_rates = end_flows_info(:,2);
-                    
-                    % Beáramlások
-                    if j <= num_internal_reactions + num_inflows
-                        inflow_idx = j - num_internal_reactions;
-                        actual_idx = 0;
-                        for i = 1:Nc
-                            if inflow_rates(i) > 0
-                                actual_idx = actual_idx + 1;
-                                if actual_idx == inflow_idx
-                                    end_propensity = end_inflow_rates(i) * (cap(i) - X(i));
-                                    break;
-                                end
-                            end
-                        end
-                    % Kiáramlások
-                    else
-                        outflow_idx = j - num_internal_reactions - num_inflows;
-                        actual_idx = 0;
-                        for i = 1:Nc
-                            if outflow_rates(i) > 0
-                                actual_idx = actual_idx + 1;
-                                if actual_idx == outflow_idx
-                                    end_propensity = end_outflow_rates(i) * X(i);
-                                    break;
-                                end
-                            end
-                        end
-                    end
-                end
-                
-                % Az átlagos propensity becslése trapéz szabállyal
-                avg_propensity = (propensities(j) + end_propensity) / 2;
-                
-                % Új tau becslés
-                tau_new = (S(j) - T(j)) / avg_propensity;
-                
-                % További iterációk ha szükséges
-                % Az egyszerűség kedvéért és hatékonyság miatt az első iterációt használjuk
-                tau(j) = tau_new;
-            else
-                tau(j) = Inf;
-            end
-        end
-        %}
-        % Legkorábbi reakció kiválasztása
-
+        
         tolerance = 1e-8;  % Szigorú tolerancia a nagy pontossághoz
 
         for j = 1:total_reactions
             if propensities(j) > 0
-                tau(j) = adaptive_rk4_solver(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
+                tau(j) = runge_kutta(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
             else
                 tau(j) = Inf;
             end
