@@ -49,7 +49,7 @@ function k = time_dependent_rate(t, from, to)
 end
 
 % Modified Next Reaction Method futtatása
-[t_history1, X_history1, integral_check] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
+[t_history1, X_history1] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
 %[t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
 
 % Színek generálása a csomópontok számának megfelelően
@@ -120,18 +120,3 @@ title('Összes jármű száma az idő függvényében');
 xlabel('Idő [s]');
 ylabel('Összes jármű száma');
 grid on;
-
-% Ábra készítése az integrálok összehasonlításához
-figure('Position', [100, 100, 1200, 800]);
-
-% Subplot 1: Időbeli lefutás
-subplot(2,1,1);
-hold on;
-plot(integral_check.time, integral_check.S_minus_T, 'k-', 'LineWidth', 2, 'DisplayName', 'S-T');
-plot(integral_check.time, integral_check.trap_integral, 'b--', 'LineWidth', 1.5, 'DisplayName', 'Trapéz integrál');
-xlabel('Idő');
-ylabel('Integrál érték');
-title('Integrálok időbeli összehasonlítása');
-legend('Location', 'best');
-grid on;
-hold off;

@@ -27,7 +27,7 @@ function [tau, final_integral] = trapezoid_tau(S, T, t, X, mu, k_stoch_func, rea
     tau_guess = target_area / initial_propensity;
     
     % Iterációs paraméterek
-    max_iterations = 100;
+    max_iterations = 200;
     iteration = 0;
     tau = tau_guess;
     
