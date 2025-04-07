@@ -1,4 +1,4 @@
-function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix, tfinal)
+function [t_history, X_history, integral_check] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix, tfinal)
     % Modified Next Reaction Method (MNRM) algoritmus implementációja
     % Bemenetek:
     % - Nc: útszakaszok száma
@@ -9,9 +9,12 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
     % - tfinal: szimuláció vége
     
     % Inicializálás
-    t = 395;                  % Kezdeti idő
+    t = 0;                  % Kezdeti idő
     t_history = [0];        % Időpontok tárolása
     X_history = [X'];       % Állapotok tárolása
+    
+    % Struktúra az integrál ellenőrzéshez
+    integral_check = struct('time', [], 'reaction_idx', [], 'S_minus_T', [], 'trap_integral', []);
         
     % Reakciók száma
     num_internal_reactions = size(reaction_matrix, 1);
@@ -29,12 +32,9 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
     % MNRM változók inicializálása
     T = zeros(total_reactions, 1);    % Az utolsó reakció óta eltelt idő
     S = -log(rand(total_reactions, 1)); % Következő reakció időpontja
-    
+
     % Fő ciklus
-    iteration = 0;  % Iteráció számláló hozzáadása
-    while t < tfinal
-        iteration = iteration + 1;
-        
+    while t <= tfinal
         % Propensity függvények kiszámítása minden reakcióra az aktuális állapotban
         propensities = zeros(total_reactions, 1);
         
@@ -79,40 +79,40 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
         
         % Várakozási idők kiszámítása
         tau = zeros(total_reactions, 1);
+        integral_values = zeros(total_reactions, 1);  % Tároljuk az integrál értékeket
         
-        tolerance = 1e-8;  % Szigorú tolerancia a nagy pontossághoz
+        tolerance = 1e-4;  % Szigorú tolerancia a nagy pontossághoz
 
         for j = 1:total_reactions
-            if propensities(j) > 0
-                tau(j) = runge_kutta(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
+            if propensities(j) > 0     
+                % Trapéz módszer
+                [tau(j), integral_values(j)] = trapezoid_tau(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, tolerance);
+                
+                % Adatok mentése az ellenőrzéshez
+                integral_check.time = [integral_check.time; t];
+                integral_check.reaction_idx = [integral_check.reaction_idx; j];
+                integral_check.S_minus_T = [integral_check.S_minus_T; S(j) - T(j)];
+                integral_check.trap_integral = [integral_check.trap_integral; integral_values(j)];
             else
                 tau(j) = Inf;
+                integral_values(j) = 0;
             end
         end
+        
         [delta_t, mu] = min(tau);
         
         % Idő frissítése
         t = t + delta_t;
+        
         if t > tfinal
             break;
         end
         
         % T értékek frissítése minden reakcióra
         for j = 1:total_reactions
-            % T frissítése az integrál közelítésével
-            if j <= num_internal_reactions
-                from = reaction_matrix(j, 1);
-                to = reaction_matrix(j, 2);
-                start_k = k_stoch_func(t - delta_t, from, to);
-                end_k = k_stoch_func(t, from, to);
-                avg_k = (start_k + end_k) / 2;
-                avg_propensity = avg_k * X(from) * (cap(to) - X(to));
-            else
-                % Külső flow-k becslése
-                avg_propensity = propensities(j);
+            if propensities(j) > 0
+                T(j) = T(j) + integral_values(j);
             end
-            
-            T(j) = T(j) + avg_propensity * delta_t;
         end
         
         % Állapot frissítése a választott reakció alapján
@@ -160,4 +160,5 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
         t_history = [t_history; t];
         X_history = [X_history; X'];
     end
+    
 end

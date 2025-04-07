@@ -35,23 +35,22 @@ function k = time_dependent_rate(t, from, to)
     %torlódás a 2-es útszakaszon bizonyos időszakban
     if from == 1 && to == 2
         k = k_base * (1 + 0.5*sin(t/30));  % Ingadozó forgalom
+    elseif from == 3 && to == 1
+        k = k_base * (1 + 0.2*cos(t/50));  % Enyhe ingadozás
     elseif from == 2 && to == 3
-        if t > 100 && t < 200
-            k = k_base * 0.5;  % Lassabb áthaladás (forgalmi dugó)
+        if t>100 && t<200
+            k = k_base * 0.5;
         else
             k = k_base;
         end
-    elseif from == 3 && to == 1
-        k = k_base * (1 + 0.2*cos(t/50));  % Enyhe ingadozás
     else 
         k = k_base;  % Alapértelmezett ráta
     end
 end
 
 % Modified Next Reaction Method futtatása
-[t_history1, X_history1] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
-[t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
-
+[t_history1, X_history1, integral_check] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
+%[t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
 
 % Színek generálása a csomópontok számának megfelelően
 newcolors = jet(Nc);
@@ -70,7 +69,7 @@ ylabel('Járművek száma');
 xlabel('Idő [s]');
 grid on;
 ylim([0, cap(1)]);  % Y-tengely korlátozása a maximális kapacitásra
-
+%{
 % tRSSA eredmények ábrázolása alsó subplot-ban
 subplot(2, 1, 2);
 stairs(t_history2, X_history2, 'LineWidth', 2);
@@ -81,7 +80,7 @@ ylabel('Járművek száma');
 xlabel('Idő [s]');
 grid on;
 ylim([0, cap(1)]);  % Y-tengely korlátozása a maximális kapacitásra
-
+%}
 % Külön ábra az átmeneti ráták időbeli változásának ábrázolásához
 figure;
 t_range = linspace(0, tfinal, 1000);
@@ -121,3 +120,18 @@ title('Összes jármű száma az idő függvényében');
 xlabel('Idő [s]');
 ylabel('Összes jármű száma');
 grid on;
+
+% Ábra készítése az integrálok összehasonlításához
+figure('Position', [100, 100, 1200, 800]);
+
+% Subplot 1: Időbeli lefutás
+subplot(2,1,1);
+hold on;
+plot(integral_check.time, integral_check.S_minus_T, 'k-', 'LineWidth', 2, 'DisplayName', 'S-T');
+plot(integral_check.time, integral_check.trap_integral, 'b--', 'LineWidth', 1.5, 'DisplayName', 'Trapéz integrál');
+xlabel('Idő');
+ylabel('Integrál érték');
+title('Integrálok időbeli összehasonlítása');
+legend('Location', 'best');
+grid on;
+hold off;
