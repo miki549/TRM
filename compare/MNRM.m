@@ -11,7 +11,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
     % Inicializálás
     t = 0;                  % Kezdeti idő
     t_history = [0];        % Időpontok tárolása
-    X_history = [X'];       % Állapotok tárolása
+    X_history = X';       % Állapotok tárolása
     
     % Reakciók száma
     num_internal_reactions = size(reaction_matrix, 1);
@@ -46,7 +46,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             % Propensity: k_stoch(t) * n_i * (c_j - n_j)
             propensities(r) = current_k_stoch * X(from) * (cap(to) - X(to));
         end
-        
+
         % 2. Külső flow-k propensity értékei
         flows_info = TRM_external_flows(t, Nc);
         inflow_rates = flows_info(:,1);
@@ -77,11 +77,10 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
         
         % Várakozási idők kiszámítása
         tau = zeros(total_reactions, 1);
-        integral = zeros(total_reactions,1);
         for j = 1:total_reactions
             if propensities(j) > 0
                 % Az integrál egyenlet megoldása a trapezoid_tau függvénnyel
-                [tau(j), integral(j)] = trapezoid_tau(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, 1e-6);
+                tau(j) = trapezoid_tau(S(j), T(j), t, X, j, k_stoch_func, reaction_matrix, cap, Nc, 1e-6);
             else
                 tau(j) = Inf;
             end
@@ -95,7 +94,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
         if t > tfinal
             break;
         end
-        % EZT A RÉSZT KELL MEGNÉZNI_____________________________________
+
         % T értékek frissítése minden reakcióra
         for j = 1:total_reactions
             % T frissítése az integrál közelítésével
@@ -110,10 +109,9 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
                 % Külső flow-k becslése
                 avg_propensity = propensities(j);
             end
-            
             T(j) = T(j) + avg_propensity * delta_t;
         end
-       % IDÁIG______________________________________________________ 
+
         % Állapot frissítése a választott reakció alapján
         if mu <= num_internal_reactions
             % Belső átmenet két útszakasz között

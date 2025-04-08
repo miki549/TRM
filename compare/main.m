@@ -11,7 +11,7 @@ k_base = omega/delta_x;   % Alapértelmezett átmeneti ráta [m / (jármű * s)]
 cm = delta_x/l;           % Cellák maximális kapacitása [jármű]
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [5;0;40];
+X = [5;1;30];
 
 Nc = length(X);                   % Útszakaszok száma
 cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
@@ -38,11 +38,10 @@ function k = time_dependent_rate(t, from, to)
     elseif from == 3 && to == 1
         k = k_base * (1 + 0.2*cos(t/50));  % Enyhe ingadozás
     elseif from == 2 && to == 3
-        if t>100 && t<200
-            k = k_base * 0.5;
-        else
-            k = k_base;
-        end
+        % Tanh alapú átmenet a 2->3 szakaszon
+        center = 150; % Az átmenet középpontja
+        width = 20;   % Az átmenet szélessége
+        k = k_base * (0.75 + 0.25*tanh((t-center)/width));
     else 
         k = k_base;  % Alapértelmezett ráta
     end
@@ -50,7 +49,7 @@ end
 
 % Modified Next Reaction Method futtatása
 [t_history1, X_history1] = MNRM(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
-%[t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
+[t_history2, X_history2] = tRSSA(Nc, X, cap, @time_dependent_rate, reaction_matrix, tfinal);
 
 % Színek generálása a csomópontok számának megfelelően
 newcolors = jet(Nc);
@@ -69,7 +68,7 @@ ylabel('Járművek száma');
 xlabel('Idő [s]');
 grid on;
 ylim([0, cap(1)]);  % Y-tengely korlátozása a maximális kapacitásra
-%{
+
 % tRSSA eredmények ábrázolása alsó subplot-ban
 subplot(2, 1, 2);
 stairs(t_history2, X_history2, 'LineWidth', 2);
@@ -80,7 +79,7 @@ ylabel('Járművek száma');
 xlabel('Idő [s]');
 grid on;
 ylim([0, cap(1)]);  % Y-tengely korlátozása a maximális kapacitásra
-%}
+
 % Külön ábra az átmeneti ráták időbeli változásának ábrázolásához
 figure;
 t_range = linspace(0, tfinal, 1000);
@@ -120,3 +119,10 @@ title('Összes jármű száma az idő függvényében');
 xlabel('Idő [s]');
 ylabel('Összes jármű száma');
 grid on;
+
+% Propensity függvények vizualizálása
+t_start = 0;
+t_end = tfinal;
+num_points = 1000;  % Ennyi pontban számoljuk ki az értékeket
+
+%plot_propensities(X, reaction_matrix, cap, @time_dependent_rate, Nc, t_start, t_end, num_points);

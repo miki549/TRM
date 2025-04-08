@@ -55,6 +55,7 @@ function [tau, final_integral] = trapezoid_tau(S, T, t, X, mu, k_stoch_func, rea
         
         iteration = iteration + 1;
     end
-    
+    %fprintf('S-T: %f Computed: %f',target_area,integral_value);
+    %fprintf('\n');
     final_integral = integral_value;
 end 
