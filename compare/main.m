@@ -11,7 +11,7 @@ k_base = omega/delta_x;   % Alapértelmezett átmeneti ráta [m / (jármű * s)]
 cm = delta_x/l;           % Cellák maximális kapacitása [jármű]
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [5;1;30];
+X = [5;1;30;13;8];
 
 Nc = length(X);                   % Útszakaszok száma
 cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
@@ -23,7 +23,10 @@ tfinal = 400;             % Szimuláció vége
 reaction_matrix = [
     1, 2; 
     2, 3;
-    3, 1
+    3, 4;
+    4, 1;
+    4, 5;
+    5, 3;
 ];
 
 % Időfüggő átmeneti ráta függvény definiálása
@@ -32,7 +35,7 @@ reaction_matrix = [
 function k = time_dependent_rate(t, from, to)
     % Az alap átmeneti ráta
     k_base = 0.00025;
-    %torlódás a 2-es útszakaszon bizonyos időszakban
+    
     if from == 1 && to == 2
         k = k_base * (1 + 0.5*sin(t/30));  % Ingadozó forgalom
     elseif from == 3 && to == 1
@@ -42,6 +45,12 @@ function k = time_dependent_rate(t, from, to)
         center = 150; % Az átmenet középpontja
         width = 20;   % Az átmenet szélessége
         k = k_base * (0.75 + 0.25*tanh((t-center)/width));
+    elseif from == 4 && to == 1
+        % Periodikus változás nagyobb amplitúdóval a 4->1 szakaszon
+        k = k_base * (1 + 0.7*sin(t/40 + pi/4));  % Fáziseltolt, erősebb ingadozás
+    elseif from == 4 && to == 2
+        % Két frekvenciás oszcilláció a 4->2 szakaszon
+        k = k_base * (1 + 0.3*sin(t/25) + 0.2*cos(t/45));  % Összetett ingadozás
     else 
         k = k_base;  % Alapértelmezett ráta
     end
