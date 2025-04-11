@@ -88,7 +88,7 @@ ylabel('Járművek száma');
 xlabel('Idő [s]');
 grid on;
 ylim([0, cap(1)]);  % Y-tengely korlátozása a maximális kapacitásra
-
+%{
 % Külön ábra az átmeneti ráták időbeli változásának ábrázolásához
 figure;
 t_range = linspace(0, tfinal, 1000);
@@ -109,7 +109,7 @@ ylabel('k_{stoch} érték');
 legend_labels = arrayfun(@(x) sprintf('k_{%d→%d}', reaction_matrix(x,1), reaction_matrix(x,2)), 1:size(reaction_matrix, 1), 'UniformOutput', false);
 legend(legend_labels);
 grid on;
-
+%}
 figure;
 
 % Az összes jármű számának kiszámítása minden időpontban
@@ -134,4 +134,4 @@ t_start = 0;
 t_end = tfinal;
 num_points = 1000;  % Ennyi pontban számoljuk ki az értékeket
 
-%plot_propensities(X, reaction_matrix, cap, @time_dependent_rate, Nc, t_start, t_end, num_points);
+plot_propensities(X, reaction_matrix, cap, @time_dependent_rate, Nc, t_start, t_end, num_points);
