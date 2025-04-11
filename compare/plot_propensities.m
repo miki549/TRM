@@ -1,6 +1,7 @@
-function plot_propensities(X, reaction_matrix, cap, k_stoch_func, Nc, t_start, t_end, num_points)
+function plot_propensities(t_history, X_history, reaction_matrix, cap, k_stoch_func, Nc, t_start, t_end, num_points)
     % Propensity függvények ábrázolása az idő függvényében
-    % X: kezdeti állapot
+    % t_history: szimuláció időpontjai
+    % X_history: szimuláció állapotai
     % reaction_matrix: reakció mátrix
     % cap: kapacitások
     % k_stoch_func: átmeneti ráta függvény
@@ -14,14 +15,15 @@ function plot_propensities(X, reaction_matrix, cap, k_stoch_func, Nc, t_start, t
     
     % Propensity értékek kiszámítása minden időpontra és reakcióra
     for i = 1:num_points
+        % Keressük meg a legközelebbi szimulációs időpontot
+        [~, closest_idx] = min(abs(t_history - t(i)));
+        current_X = X_history(closest_idx, :);
+        
         for r = 1:num_reactions
             from = reaction_matrix(r, 1);
             to = reaction_matrix(r, 2);
             k = k_stoch_func(t(i), from, to);
-            if from == 2 && to == 3
-                fprintf("k: %f, X(from): %f, X(to): %f, cap(to): %f, full: %f \n",k,X(from),X(to),cap(to),k * X(from) * (cap(to) - X(to)));
-            end
-            propensities(r,i) = k * X(from) * (cap(to) - X(to));
+            propensities(r,i) = k * current_X(from) * (cap(to) - current_X(to));
         end
     end
     

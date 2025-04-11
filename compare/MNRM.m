@@ -45,6 +45,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             
             % Propensity: k_stoch(t) * n_i * (c_j - n_j)
             propensities(r) = current_k_stoch * X(from) * (cap(to) - X(to));
+            fprintf('MNRM: belső átmenet %d: %f\n', r, propensities(r));
         end
 
         % 2. Külső flow-k propensity értékei
@@ -58,6 +59,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             if inflow_rates(i) > 0
                 inflow_idx = inflow_idx + 1;
                 propensities(num_internal_reactions + inflow_idx) = inflow_rates(i) * (cap(i) - X(i));
+                fprintf('MNRM: beáramlás %d: %f\n', num_internal_reactions + inflow_idx, propensities(num_internal_reactions + inflow_idx));
             end
         end
         
@@ -67,6 +69,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             if outflow_rates(i) > 0
                 outflow_idx = outflow_idx + 1;
                 propensities(num_internal_reactions + num_inflows + outflow_idx) = outflow_rates(i) * X(i);
+                fprintf('MNRM: külső átmenet %d: %f\n', num_internal_reactions + num_inflows + outflow_idx, propensities(num_internal_reactions + num_inflows + outflow_idx));
             end
         end
         

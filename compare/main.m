@@ -11,7 +11,7 @@ k_base = omega/delta_x;   % Alapértelmezett átmeneti ráta [m / (jármű * s)]
 cm = delta_x/l;           % Cellák maximális kapacitása [jármű]
 
 % Kezdeti állapot (járművek száma szakaszonként)
-X = [5;1;30;13;8];
+X = [5;1;30;13];
 
 Nc = length(X);                   % Útszakaszok száma
 cap = cm*ones(Nc, 1);     % Útszakaszok kapacitásai
@@ -25,8 +25,6 @@ reaction_matrix = [
     2, 3;
     3, 4;
     4, 1;
-    4, 5;
-    5, 3;
 ];
 
 % Időfüggő átmeneti ráta függvény definiálása
@@ -134,4 +132,4 @@ t_start = 0;
 t_end = tfinal;
 num_points = 1000;  % Ennyi pontban számoljuk ki az értékeket
 
-plot_propensities(X, reaction_matrix, cap, @time_dependent_rate, Nc, t_start, t_end, num_points);
+plot_propensities(t_history1, X_history1, reaction_matrix, cap, @time_dependent_rate, Nc, t_start, t_end, num_points);
