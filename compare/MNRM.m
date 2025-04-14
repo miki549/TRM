@@ -45,7 +45,7 @@ function [t_history, X_history] = MNRM(Nc, X, cap, k_stoch_func, reaction_matrix
             
             % Propensity: k_stoch(t) * n_i * (c_j - n_j)
             propensities(r) = current_k_stoch * X(from) * (cap(to) - X(to));
-            fprintf('MNRM: belső átmenet %d: %f\n', r, propensities(r));
+            %fprintf('MNRM: belső átmenet %d: %f\n', r, propensities(r));
         end
 
         % 2. Külső flow-k propensity értékei
