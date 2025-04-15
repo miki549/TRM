@@ -26,10 +26,12 @@ function [tau, final_integral] = trapezoid_tau(S, T, t, X, mu, k_stoch_func, rea
     target_area = S - T;
     tau_guess = target_area / initial_propensity;
     
-    % Iterációs paraméterek
-    max_iterations = 200;
+    % Minimális tau érték a numerikus stabilitáshoz
+    min_tau = 1e-10;
+    max_iterations = 100; % Csökkentett iterációszám
     iteration = 0;
     tau = tau_guess;
+    prev_error = Inf;
     
     while iteration < max_iterations
         % Trapéz szabály alkalmazása
@@ -39,14 +41,17 @@ function [tau, final_integral] = trapezoid_tau(S, T, t, X, mu, k_stoch_func, rea
         integral_value = (tau/2) * (start_prop + end_prop);
         error = abs(integral_value - target_area);
         
-        if error < tolerance
+        % Kilépés ha elértük a toleranciát vagy nem konvergál
+        if error < tolerance || abs(error - prev_error) < tolerance/10
             final_integral = integral_value;
             return;
         end
         
+        prev_error = error;
+        
         % Tau frissítése
         if integral_value > 0
-            tau = max(0.0, tau * target_area / integral_value);
+            tau = max(min_tau, tau * target_area / integral_value);
         else
             tau = Inf;
             final_integral = 0;

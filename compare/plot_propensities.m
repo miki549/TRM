@@ -1,21 +1,21 @@
 function plot_propensities(t_history, X_history, reaction_matrix, cap, k_stoch_func, Nc, t_start, t_end, num_points)
     % Propensity függvények ábrázolása az idő függvényében
-    % t_history: szimuláció időpontjai
-    % X_history: szimuláció állapotai
-    % reaction_matrix: reakció mátrix
-    % cap: kapacitások
-    % k_stoch_func: átmeneti ráta függvény
-    % t_start, t_end: időintervallum
-    % num_points: mintavételi pontok száma
+    % Bemenetek:
+    % - t_history: szimuláció időpontjai
+    % - X_history: szimuláció állapotai
+    % - reaction_matrix: reakció mátrix
+    % - cap: kapacitások
+    % - k_stoch_func: átmeneti ráta függvény
+    % - t_start, t_end: időintervallum
+    % - num_points: mintavételi pontok száma
     
     % Időpontok generálása
     t = linspace(t_start, t_end, num_points);
     num_reactions = size(reaction_matrix, 1);
     propensities = zeros(num_reactions, num_points);
     
-    % Propensity értékek kiszámítása minden időpontra és reakcióra
+    % Propensity értékek kiszámítása
     for i = 1:num_points
-        % Keressük meg a legközelebbi szimulációs időpontot
         [~, closest_idx] = min(abs(t_history - t(i)));
         current_X = X_history(closest_idx, :);
         
@@ -46,7 +46,7 @@ function plot_propensities(t_history, X_history, reaction_matrix, cap, k_stoch_f
         1:num_reactions, 'UniformOutput', false);
     legend(legend_labels, 'Location', 'best');
     
-    % Átmeneti ráták (k_stoch)
+    % Átmeneti ráták ábrázolása
     subplot(2,1,2);
     hold on;
     k_values = zeros(num_reactions, num_points);
